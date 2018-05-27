@@ -1,0 +1,27 @@
+---
+title: "Problema 2 - Checkpoint 3"
+author: "Matheus Freitas"
+date: "27 de Maio de 2018"
+output:
+  html_document:
+    df_print: paged
+    toc: yes
+    toc_float: yes
+  html_notebook:
+    toc: yes
+    toc_float: yes
+---
+```{r setup, echo=FALSE, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(here)
+library(plotly)
+theme_set(theme_minimal())
+```
+
+```{r}
+baiana = read.csv(here("data/baiana.csv"))
+charlie = read.csv(here("data/charlie.csv"))
+```
+
+
+
