@@ -1,7 +1,7 @@
 ---
 title: "Problema 2 - Checkpoint 3"
 author: "Matheus Freitas"
-date: "27 de Maio de 2018"
+date: "28 de Maio de 2018"
 output:
   html_document:
     df_print: paged
@@ -15,13 +15,112 @@ output:
 library(tidyverse)
 library(here)
 library(plotly)
+library(viridis)
 theme_set(theme_minimal())
 ```
 
-```{r}
+Nesta análise procuramos responder algumas perguntas relacionadas a banda BaianaSystem, fundada em 2009 e em atuação até hoje tanto em território nacional quanto em vários paises pelo mundo, tem como objetivo misturar os mais diversos gêneros musicais com a "guitarra baiana". 
+
+Todos os dados utilizados nessa análise foram recolhidos a partir da API provida pelo Spotify.
+
+```{r readData}
+
 baiana = read.csv(here("data/baiana.csv"))
-charlie = read.csv(here("data/charlie.csv"))
+duasCidades <- filter(baiana, album_name == "Duas Cidades")
+baianaSystem <- filter(baiana, album_name == "Baianasystem")
+outrasCidades <- filter(baiana, album_name == "Outras Cidades (Remix)")
+
 ```
 
+##Qual dos álbuns de BaianaSystem é o mais popular? 
+```{r}
+
+todosAlbunsPlot <- plot_ly(data = baiana,
+            x = ~album_release_year,
+            y = ~album_popularity,
+            color = ~album_name,
+            text = ~album_popularity,
+            textposition = "auto",
+            type = "bar",
+            width = "800") %>%
+  layout(title = "álbuns",
+         xaxis = list(title = "Ano de Lançamento"),
+         yaxis = list(title = "Popularidade"))
+
+ggplotly(todosAlbunsPlot)
+```
+Nessa análise podemos concluir que o mais popular dentre os três álbuns é o segundo. Com isso é comum pensarmos em quais motivos fazem esse álbum em especifíco ser o mais popular dentre os 3, pergunta que iremos responder nos tópicos abaixo.
 
 
+##Quais as características do álbum mais popular? 
+```{r}
+
+duasCidadesPlot <- plot_ly(data = duasCidades,
+                           x = duasCidades$track_name,
+                           y = duasCidades$danceability,
+                           name = "Dançabilidade",
+                           type = "bar",
+                           width = "800") %>%
+  add_trace(y = duasCidades$energy,
+            name = "Energia") %>%
+  add_trace(y = duasCidades$valence, 
+            name = "Valência") %>%
+  layout(title = "Duas Cidades",
+         xaxis = list(title = "Música", showticklabels = FALSE ),
+         yaxis = list(title = "Contador"),
+         barmode = "group")
+
+ggplotly(duasCidadesPlot)
+```
+Neste gráfico podemos observar cada uma das músicas do álbum "Duas Cidades" e os valores:
+  - Dançabilidade: quanto uma música é "para dançar", quanto maior o valor, mais "dançável" é a música.
+  - Energia: músicas enérgicas são, tipicamente, mais "rápidas", altas e barulhentas.
+  - Valência: se a música é mais feliz ou triste, quanto maior o valor, mais feliz a música.
+
+Para saber o nome da música é só colocar o cursor(mouse) em cima de algum dos grupos de barras, cada grupo é uma música distinta do álbum. O mesmo procedimento pode ser feito para saber o valor exato de cada característica(energia, valência, dançabilidade) da música.
+
+É interessante observar que a música "Playsom", representada pela última barra, foi o que fez a banda ganhar destaque ao aparecer no jogo "FIFA 2016", essa música em particular possui altos valores para as três características analisadas.
+
+##De um álbum para o outro, as emoções são muito distintas? 
+```{r}
+emocoes <- ggplot(data = baiana,
+                  mapping = aes(x = energy,
+                                y = valence,
+                                label = album_name,
+                                width = "800")) +
+  stat_density2d(aes(fill = ..level..),
+                 geom = "polygon") +
+  scale_fill_viridis() +
+  facet_wrap(~album_name) +
+  labs(title =  "Emoções dos álbuns",
+       x = "Energia",
+       y = "Valência")
+
+ggplotly(emocoes)
+```
+Neste gráfico buscamos analisar, para cada álbum, as características:
+  - Energia: músicas enérgicas são, tipicamente, mais "rápidas", altas e barulhentas.
+  - Valência: se a música é mais feliz ou triste, quanto maior o valor, mais feliz a música.
+
+O medidor lateral chamado de "level", indica a concentração de músicas em certo ponto do gráfico, ou seja, pontos mais claros possuem maior concentração de músicas.
+
+Podemos observar que enquanto os dois últimos álbuns possuem grande distibuição, principalmente no que diz respeito a valência, o primeiro álbum segue uma linha muito consistente e a maioria das suas músicas se concentra ao redor de alguns pontos. Isso nos leva a pergunta, será que a valência e a dançabilidade do primeiro álbum estão relacionadas? 
+
+
+##Valência e dançabilidade estão relacionadas no álbum "BaianaSystem"? 
+
+```{r}
+baianaSystemPlot <- plot_ly(data = baianaSystem,
+                           x = baianaSystem$danceability,
+                           y = baianaSystem$valence,
+                           color = baianaSystem$track_name,
+                           width = "800",
+                           type = "scatter") %>%
+  layout(title = "Baiana System",
+         xaxis = list(title = "Dançabilidade"),
+         yaxis = list(title = "Valência"))
+
+ggplotly(baianaSystemPlot)
+
+```
+Neste gráfico buscamos identificar se existe alguma relação entre a dançabilidade e a valência, no primeiro álbum lançado pela banda. Podemos identificar que não existe uma relação direta entre essas duas características, já que existem músicas de alta valência e pouca dançabilidade ou vice versa.
